@@ -20,7 +20,8 @@ public class dynamicDBG {
 		String[] kmers = lines.toArray(new String[0]);
 //		dbg.buildGraphfromKmers(kmers);
 		
-		String[] s = {"asda","ddda","fsda","fffa"};
+//		String[] s = {"asda","ddda","fsda","fffa"};
+//		generate rabin karp hash value for kmers
 		generateHash g = new generateHash(kmers);
     	g.showMap();
 	}
