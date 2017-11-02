@@ -10,7 +10,8 @@ public class generateHash {
 	private int R;		
 	private int P;		// prime
 	private int base;	//base
-	private Map<String, Long> hashed;
+	private Map<String, Long> hashed; 	//Rabin Karp Hash Table
+	private Map<Long,Long> MFH; 		//Minimal Perfect Hash Table
 	//private Map<Character, Integer> agct;
     public generateHash(String[] inputString) {
     	this.length = inputString.length;
@@ -19,24 +20,29 @@ public class generateHash {
     	this.P = firstLargerPrime(R);
     	boolean isInjective = false;
     	
+    	
     	while(!isInjective) {
     		
+    		boolean hasDup = false;
     		this.hashed = new HashMap<String, Long>();
         	Set<Long> duplicate = new HashSet<Long>(); 
         	
     		int random = (int)(Math.random() * (P - 1));
         	this.base = random;
         	for(int i = 0; i < length; i++) {
+        		if(hasDup) break;
         		long value = hash(inputString[i]);
         		if(duplicate.contains(value)) {
+        			hasDup = true;
         			continue;
         		} else {
         			duplicate.add(value);
         			hashed.put(inputString[i], value);
+        			if (i == length - 1) isInjective = true;
         		}
-        		if (i == length - 1) isInjective = true;
         	}
     	}
+    	generateMFH();
     }
     //check whether a number is a prime
     private boolean isPrime (int n) {
@@ -68,11 +74,20 @@ public class generateHash {
 //    private boolean isInjective() {
 //    	
 //    }
-    
+    //generate Minimum Perfect Hash Table
+    public void generateMFH() {
+    	MFH = new HashMap<Long, Long>();
+    	long count = 0;
+    	for(String i : hashed.keySet()) {
+    		long key = hashed.get(i);
+    		MFH.put(key, count++);
+    	}
+    }
     public void showMap() {
     	String temp = "";
     	for(String i : hashed.keySet()) {
-    		temp = i + " -> " + hashed.get(i);
+    		long h = hashed.get(i);
+    		temp = i + " -> " + h + " -> " + MFH.get(h);
     		System.out.println(temp);
     	}
     }
