@@ -10,6 +10,7 @@ public class generateHash {
 	private int R;		
 	private int P;		// prime
 	private int base;	//base
+	private String[] inputString;
 	private Map<String, Long> hashed; 	//Rabin Karp Hash Table
 	private Map<Long,Long> MFH; 		//Minimal Perfect Hash Table
 	//private Map<Character, Integer> agct;
@@ -18,8 +19,12 @@ public class generateHash {
     	this.k = inputString[0].length();
     	this.R = Math.max(4, k * length * length);
     	this.P = firstLargerPrime(R);
-    	boolean isInjective = false;
+    	this.inputString = inputString;
     	
+    }
+    //generate hash
+    public int generate() {	
+    	boolean isInjective = false;
     	
     	while(!isInjective) {
     		
@@ -31,7 +36,7 @@ public class generateHash {
         	this.base = random;
         	for(int i = 0; i < length; i++) {
         		if(hasDup) break;
-        		long value = hash(inputString[i]);
+        		long value = hash(this.base, inputString[i]);
         		if(duplicate.contains(value)) {
         			hasDup = true;
         			continue;
@@ -43,7 +48,20 @@ public class generateHash {
         	}
     	}
     	generateMFH();
+    	return this.base;
     }
+    
+    //generate hash with base information
+    public void generateWithBase(int base) {
+    	this.base = base;
+    	this.hashed = new HashMap<String, Long>();
+    	for(int i = 0; i < length; i++) {
+    		long value = hash(this.base, inputString[i]);
+    		hashed.put(inputString[i], value);	
+    	}
+    	generateMFH();
+    }
+    
     //check whether a number is a prime
     private boolean isPrime (int n) {
     	//check if n is a multiple of 2
@@ -63,17 +81,14 @@ public class generateHash {
     	return i;
     }
     //Rabin Karp hash function
-    private long hash(String key) { 
+    private long hash(int base, String key) { 
     	int m = key.length();
     	long h = 0; 
         for (int j = 0; j < m; j++) 
             h = (base * h + key.charAt(j)) % P;
         return h;
     }
-    //isInjective()
-//    private boolean isInjective() {
-//    	
-//    }
+
     //generate Minimum Perfect Hash Table
     public void generateMFH() {
     	MFH = new HashMap<Long, Long>();
@@ -83,6 +98,14 @@ public class generateHash {
     		MFH.put(key, count++);
     	}
     }
+    
+    //get the hashed value of a string with fixed base
+    public long hashFunction(int r, String key) {
+    	long hashed = this.hash(r, key);
+    	if(this.MFH.containsKey(hashed)) return this.MFH.get(hashed);
+    	return -1;
+    	
+    }
     public void showMap() {
     	String temp = "";
     	for(String i : hashed.keySet()) {
@@ -90,5 +113,8 @@ public class generateHash {
     		temp = i + " -> " + h + " -> " + MFH.get(h);
     		System.out.println(temp);
     	}
+    }
+    public int getPrime() {
+    	return this.P;
     }
 }

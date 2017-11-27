@@ -24,13 +24,20 @@ public class dynamicDBG {
 		ScanLines.close();
 		deBruijnGraph dbg = new deBruijnGraph("");
 		String[] kmers = lines.toArray(new String[0]);
-//		dbg.buildGraphfromKmers(kmers);
+		//GAGGTGAGTGAGGTC
+		//String[] kmers = {"GAGGTG","AGGTGA","GGTGAG","GTGAGT","TGAGTG","GAGTGA","AGTGAG","GTGAGG","TGAGGT","GAGGTC"};
+		String[] nodes = dbg.buildGraphfromKmers(kmers);
 		
 //**********generate hash from n K-mers:	
 		
-		String[] s = {"asda","ddda","fsda","fffa","asdb"};
-//		generate rabin karp hash value for kmers
-		generateHash g = new generateHash(kmers);
-    	g.showMap();
+		
+		int base = dbg.getBase();
+		System.out.println("base: " + base);
+    	//long res = dbg.g.hashFunction(base, "GAGTG");
+
+    	//System.out.println("hash(GAGTG): "+ res);
+    	int[][] IN =  dbg.getIN();
+    	int[][] OUT =  dbg.getOUT();
+    	System.out.println("PRIME: " + dbg.g.getPrime());
 	}
 }
