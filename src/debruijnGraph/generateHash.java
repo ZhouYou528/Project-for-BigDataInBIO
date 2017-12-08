@@ -1,6 +1,12 @@
+package debruijnGraph;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import reference.minimalPerfectHash;
+import reference.minimalPerfectHash.LongHash;
+import reference.minimalPerfectHash.UniversalHash;
+
 import java.util.HashSet;
 
 public class generateHash {
@@ -12,14 +18,18 @@ public class generateHash {
 	private int base;	//base
 	private String[] inputString;
 	private Map<String, Long> hashed; 	//Rabin Karp Hash Table
-	private Map<Long,Long> MFH; 		//Minimal Perfect Hash Table
-	//private Map<Character, Integer> agct;
+	private Set<Long> krHash; //Rabin Karp Hash value
+	private UniversalHash<Long> u; //used for minimum perfect hash
+	private byte[] desc; //used for minimum perfect hash
+	private minimalPerfectHash<Long> mph; //used for minimum perfect hash
+
     public generateHash(String[] inputString) {
     	this.length = inputString.length;
     	this.k = inputString[0].length();
     	this.R = Math.max(4, k * length * length);
     	this.P = firstLargerPrime(R);
     	this.inputString = inputString;
+    	this.u = new LongHash();
     	
     }
     //generate hash
@@ -30,6 +40,7 @@ public class generateHash {
     		
     		boolean hasDup = false;
     		this.hashed = new HashMap<String, Long>();
+    		this.krHash = new HashSet<Long>();
         	Set<Long> duplicate = new HashSet<Long>(); 
         	
     		int random = (int)(Math.random() * (P - 1));
@@ -43,6 +54,7 @@ public class generateHash {
         		} else {
         			duplicate.add(value);
         			hashed.put(inputString[i], value);
+        			krHash.add(value);
         			if (i == length - 1) isInjective = true;
         		}
         	}
@@ -89,28 +101,23 @@ public class generateHash {
         return h;
     }
 
-    //generate Minimum Perfect Hash Table
+    //generate Minimum Perfect Hash 
     public void generateMFH() {
-    	MFH = new HashMap<Long, Long>();
-    	long count = 0;
-    	for(String i : hashed.keySet()) {
-    		long key = hashed.get(i);
-    		MFH.put(key, count++);
-    	}
+    	this.desc = minimalPerfectHash.generate(krHash, this.u);
+    	this.mph = new minimalPerfectHash<Long>(desc, u);
     }
     
     //get the hashed value of a string with fixed base
-    public long hashFunction(int r, String key) {
-    	long hashed = this.hash(r, key);
-    	if(this.MFH.containsKey(hashed)) return this.MFH.get(hashed);
-    	return -1;
-    	
+    public long hashFunction(int base, String key) {
+    	long hashed = this.hash(base, key);
+    	return this.mph.get(hashed);
     }
+    
     public void showMap() {
     	String temp = "";
     	for(String i : hashed.keySet()) {
     		long h = hashed.get(i);
-    		temp = i + " -> " + h + " -> " + MFH.get(h);
+    		temp = i + " -> " + h + " -> " + this.mph.get(h);
     		System.out.println(temp);
     	}
     }

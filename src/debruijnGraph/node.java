@@ -1,3 +1,4 @@
+package debruijnGraph;
 public class node {
 	private String label;
 	private char parent;
