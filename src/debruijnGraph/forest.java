@@ -1,8 +1,11 @@
 package debruijnGraph;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class forest {
 	public List<String> roots;
@@ -47,19 +50,21 @@ public class forest {
 	//return the height of the tree
 	public int getHeight(String kmer, generateHash g, int base) {
 		int height = 0;
-		String current = kmer;
-		int hashed = (int) g.hashFunction(base, current);
+		int hashed = (int) g.hashFunction(base, kmer);
 		while(this.parent[hashed]!= '\0') {
 			height++;
-			current = this.getParent(current, hashed);
-			hashed = (int) g.hashFunction(base, current);
+			kmer = this.getParent(kmer, hashed);
+			hashed = (int) g.hashFunction(base, kmer);
 		}
 		return height;
 	}
 	//return the root of the tree
-	public String getRoot(String kmer, generateHash g, int base) {
+	public String getRoot(String kmer, generateHash g, long base) {
 		int hashed = (int) g.hashFunction(base, kmer);
+		int count = 0;
 		while(this.parent[hashed]!= '\0') {
+			if(count > 500) break;
+			count++;
 			kmer = this.getParent(kmer, hashed);
 			hashed = (int) g.hashFunction(base, kmer);
 		}
@@ -69,11 +74,30 @@ public class forest {
 	public int getTreeHeight(int i) {
 		return this.treeHeight[i];
 	}
-	public void setTreeHeight(String[] kmers, generateHash g, int base) {
-		for(int i = 0; i < kmers.length; i++) {
-			String root = this.getRoot(kmers[i], g, base);
-			int rootHash = (int) g.hashFunction(base, root);
-			int height = this.getHeight(kmers[i], g, base);
+//	public void setTreeHeight(String[] kmers, generateHash g, int base) {
+//		for(int i = 0; i < kmers.length; i++) {
+//			String root = this.getRoot(kmers[i], g, base);
+//			int rootHash = (int) g.hashFunction(base, root);
+//			int height = this.getHeight(kmers[i], g, base);
+//			if(height > this.treeHeight[rootHash]) {
+//				this.treeHeight[rootHash] = height;
+//			}
+//		}
+//	}
+	public void setTreeHeight(List<String> nodes, generateHash g, int base) {
+		Set<String> visited = new HashSet<String>();
+		for(String i : nodes) {
+			if(visited.contains(i)) continue;
+			int height = 0;
+			visited.add(i);
+			int hashed = (int) g.hashFunction(base, i);
+			while(this.parent[hashed]!= '\0') {
+				height++;
+				i = this.getParent(i, hashed);
+				visited.add(i);
+				hashed = (int) g.hashFunction(base, i);
+			}
+			int rootHash = (int) g.hashFunction(base, i);
 			if(height > this.treeHeight[rootHash]) {
 				this.treeHeight[rootHash] = height;
 			}
@@ -111,7 +135,7 @@ public class forest {
 		}
 		return true;
 	}
-	public String traverseUp(String u, generateHash g, int base, int reverseHeight) {
+	public String traverseUp(String u, generateHash g, long base, int reverseHeight) {
 		String root = u;
 		for(int i = 0; i < reverseHeight; i++) {
 			int hashed = (int) g.hashFunction(base, root);

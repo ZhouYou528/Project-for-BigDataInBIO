@@ -1,13 +1,13 @@
 package debruijnGraph;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
@@ -133,31 +133,39 @@ public class deBruijnGraph {
 		String[] kmers = this.nodes.toArray(new String[nodes.size()]);
 		f = new forest(kmers.length);
 		this.alpha = alpha;
-		Set<String> visited = new HashSet<String>();
+		Set<String> unvisited = new HashSet<String>();
+		for(int i = 0; i < kmers.length; i++) {
+			unvisited.add(kmers[i]);
+		}
 		String root = kmers[0];
 		int[] height = new int[kmers.length];
 		Queue<String> queue = new LinkedList<String>();
 		queue.add(root);
-		visited.add(root);
+		unvisited.remove(root);
 		f.addToRoot(root);
+		Map<Integer, Integer> rootMap = new HashMap<Integer, Integer>();
+		rootMap.put((int) g.hashFunction(base, root), (int) g.hashFunction(base, root));
 		//BFS
 		while(!queue.isEmpty()) {
 			List<String> neighbors = new ArrayList<String>();
 			String cur = queue.poll();
 			int hashed1 = (int) g.hashFunction(base, cur);
+			
 			this.getNeighbors(cur,hashed1, neighbors);
 			for(int i = 0; i < neighbors.size(); i++) {
 				String curNeighbor = neighbors.get(i);
 				int hashed2 = (int) g.hashFunction(base, curNeighbor);
-				if(!visited.contains(curNeighbor)) {
+				if(unvisited.contains(curNeighbor)) {
 					queue.add(curNeighbor);
-					visited.add(curNeighbor);
+					unvisited.remove(curNeighbor);
 					height[hashed2] = height[hashed1] + 1;
-					if(height[hashed2] <= 2 * alpha) {
+					if(height[hashed2] <= 3 * alpha) {
 						if(curNeighbor.substring(1).equals(cur.substring(0, cur.length() - 1))) {
 							f.setParent(hashed2, cur.charAt(cur.length() - 1), false);
+							rootMap.put(hashed2, rootMap.get(hashed1));
 						} else if(curNeighbor.substring(0, curNeighbor.length() - 1).equals(cur.substring(1))) {
 							f.setParent(hashed2, cur.charAt(0), true);
+							rootMap.put(hashed2, rootMap.get(hashed1));
 						} else {
 							System.out.println("Setting parents ERROR!");
 						}
@@ -165,13 +173,16 @@ public class deBruijnGraph {
 					} else {
 						if(curNeighbor.substring(1).equals(cur.substring(0, cur.length() - 1))) {
 							f.setParent(hashed2, cur.charAt(cur.length() - 1), false);
+							rootMap.put(hashed2, rootMap.get(hashed1));
 						} else if(curNeighbor.substring(0, curNeighbor.length() - 1).equals(cur.substring(1))) {
 							f.setParent(hashed2, cur.charAt(0), true);
+							rootMap.put(hashed2, rootMap.get(hashed1));
 						} else {
 							System.out.println("Setting parents ERROR!");
 						}
 						String cutOffRoot = f.traverseUp(curNeighbor, this.g, this.base, alpha);
 						int hash3 = (int) g.hashFunction(base, cutOffRoot);
+						rootMap.put(hash3, hash3);
 						f.addToRoot(cutOffRoot);
 						f.setParent(hash3, '\0', false);
 						String kmer = curNeighbor;
@@ -179,30 +190,53 @@ public class deBruijnGraph {
 						int h = alpha;
 						
 						while(kmer != null){
+							rootMap.put(hashkmer,hash3);
 							height[hashkmer] = h;
 							h--;
 							kmer = f.getParent(kmer, hashkmer);
-							if(kmer != null) hashkmer = (int) g.hashFunction(this.base, kmer);
+							if(kmer != null) {
+								hashkmer = (int) g.hashFunction(this.base, kmer);
+								
+							}
 						}
 
 					}
 					
 				}
 			}
+			if(queue.size() == 0 && unvisited.size() != 0) {
+				String next = "";
+				for(String s : unvisited) {
+					if(s != null) {
+						next = s;
+						break;
+					}
+				}
+				int nextHash = (int) g.hashFunction(base, next);
+				rootMap.put(nextHash, nextHash);
+				queue.add(next);
+				f.addToRoot(next);
+			}
 		}
-		f.setTreeHeight(kmers, this.g, this.base);
+		//f.setTreeHeight(nodes, this.g, this.base);
 		//for testing
-//		int[] treeHeight = f.treeHeight;
-//		int sum = 0, count = 0;
-//		for(int i = 0; i < treeHeight.length; i++) {
-//			if(treeHeight[i] != 0) {
-//				sum += treeHeight[i];
-//				count++;
-//			}
-//		}
-//		List<String> res1 = f.getRoots();
+		int[] treeHeight = new int[kmers.length];
+		for(int i = 0; i < height.length; i++) {
+	
+			if(height[i] > treeHeight[rootMap.get(i)]) {
+				treeHeight[rootMap.get(i)] = height[i];
+			}
+		}
+		int sum = 0, count = 0;
+		for(int i = 0; i < treeHeight.length; i++) {
+			if(treeHeight[i] != 0) {
+				sum += treeHeight[i];
+				count++;
+			}
+		}
+		List<String> res1 = f.getRoots();
 		System.out.println("Done constructing forest!");
-		//System.out.println("Number of trees: " + res1.size() + " Average tree height: " + sum/count);
+		System.out.println("Number of trees: " + res1.size() + " Average tree height: " + sum/count);
 	}
 	//get all neighbors of a node in undirected graph
 	public void getNeighbors(String cur, int hashed, List<String> neighbors){

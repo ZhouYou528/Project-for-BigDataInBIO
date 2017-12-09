@@ -37,7 +37,7 @@ public class generateHash {
     	boolean isInjective = false;
     	
     	while(!isInjective) {
-    		
+    	
     		boolean hasDup = false;
     		this.hashed = new HashMap<String, Long>();
     		this.krHash = new HashSet<Long>();
@@ -75,7 +75,7 @@ public class generateHash {
     }
     
     //check whether a number is a prime
-    private boolean isPrime (int n) {
+    private boolean isPrime (long n) {
     	//check if n is a multiple of 2
     	if (n % 2 == 0) return false;
     	//if not, then just check the odds
@@ -93,7 +93,7 @@ public class generateHash {
     	return i;
     }
     //Rabin Karp hash function
-    private long hash(int base, String key) { 
+    private long hash(long base, String key) { 
     	int m = key.length();
     	long h = 0; 
         for (int j = 0; j < m; j++) 
@@ -108,7 +108,7 @@ public class generateHash {
     }
     
     //get the hashed value of a string with fixed base
-    public long hashFunction(int base, String key) {
+    public long hashFunction(long base, String key) {
     	long hashed = this.hash(base, key);
     	return this.mph.get(hashed);
     }
@@ -121,7 +121,7 @@ public class generateHash {
     		System.out.println(temp);
     	}
     }
-    public int getPrime() {
+    public long getPrime() {
     	return this.P;
     }
 }

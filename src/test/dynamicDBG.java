@@ -38,7 +38,7 @@ public class dynamicDBG {
 		fastqReader fr = new fastqReader(args[0]);
 		//fastqReader fr = new fastqReader("/Users/youzhou/Documents/BigDataInBIO/projectCode/dynamicDeBruijnGraph/data/test.fastq");
 		int k = Integer.parseInt(args[1]);
-		//int k = 95;
+		//int k = 51;
 		String[] kmers = fr.generateKmer(k);
 		System.out.println("Done!");
 		time3 = System.currentTimeMillis() - time3;
@@ -68,7 +68,7 @@ public class dynamicDBG {
 		//construct forest
 		System.out.println("******************************** Forest ********************************\n");
 		long time = System.currentTimeMillis();
-		dbg.forestConstruction(50);
+		dbg.forestConstruction(k*3/5);
 		time = System.currentTimeMillis() - time;
 		System.out.println("Covering forest constructing time: " + time + " ms\n");
 		//membership query
