@@ -27,7 +27,7 @@ make clean
 ```
 
 Defult k value is 51. If you want to change the k value, open the makefile with any text editor. 
-You can change the value accordingly.
+You can change the value accordingly. Recommand k value is from 31 to 51.
 
 ```
 # default command line arguments: [input fastq file, k value]
